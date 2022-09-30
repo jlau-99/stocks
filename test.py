@@ -1,11 +1,19 @@
+import yfinance as yf
+import csv
+import pandas as pd
+from datetime import date
+import matplotlib.pyplot as plt
+import numpy
+import shutil
 import os
 print(os.getcwd())
 
 # unzipping downloaded files
-# import shutil
-# for y in range(2009,2022):
-#     for x in range(1,5):
+# for y in range(2009,2013):
+#     for x in range(1,2):
 #         shutil.unpack_archive(f'{y}q{x}.zip', f'{y}q{x}')
+
+
 
 # returns a map from tickers to cik
 def gettickertocik():
@@ -37,7 +45,7 @@ def getcik():
     return cik
 
 # returns the adsh with specific filetypes
-def getadsh(foldername, filetypes):
+def getadsh(foldername, filetypes = ['10-K','10-Q']):
     adsh = set()
     filename = foldername + '/sub.txt'
     with open(filename, 'r') as file:
@@ -51,8 +59,7 @@ def getadsh(foldername, filetypes):
 # returns the standard tags
 def gettags(foldername):
     tags = set()
-    filename = foldername + '/tag.txt'
-    with open(filename, 'r') as file:
+    with open(f'{foldername}/tag.txt', 'r') as file:
         for row in file:
             data = row.split('\t')
             # the 3rd entry is '0' for standard tags and '1' for custom tags
@@ -61,10 +68,13 @@ def gettags(foldername):
     return tags
 
 # returns the subset of tags used by submissions in adsh
-def getusedtags(foldername, tags, adsh):
+def getusedtags(foldername, tags = None, adsh = None):
+    if tags == None:
+        tags = gettags(foldername)
+    if adsh == None:
+        adsh = getadsh(foldername)
     usedtags = set()
-    filename = foldername + '/num.txt'
-    with open(filename, 'r') as file:
+    with open(f'{foldername}/num.txt', 'r') as file:
         for row in file:
             data = row.split('\t')
             # the 1st entry is adsh and 2nd entry is tag
@@ -72,11 +82,66 @@ def getusedtags(foldername, tags, adsh):
                 usedtags.add(data[1])
     return usedtags 
 
-import yfinance as yf
-import csv
-import pandas as pd
-from datetime import date
-import matplotlib.pyplot as plt
+# returns a map from the given adshs to their ciks
+def getadshtocik(foldername, adsh):
+    adshtocik = {}
+    with open(f'{foldername}/sub.txt', 'r') as file:
+        for row in file:
+            data = row.split('\t')
+            # the 1st entry is adsh and 2nd entry is cik
+            if data[0] in adsh:
+                adshtocik[data[0]] = data[1]
+    return adshtocik
+
+
+def generatecsv(foldername, tags, adshs):
+    adshtovalues = {}
+    for adsh in adshs:
+        adshtovalues[adsh] = {}
+    with open(f'{foldername}/num.txt', 'r') as file:
+            for row in file:
+                s = row.split('\t')
+                if s[0] in adsh and s[1] in tags:
+                    if s[1] in adshtovalues[s[0]] and adshtovalues[s[0]][s[1]][1] < s[4] and s[5] == 1:
+                        adshtovalues[s[0]][s[1]] = (s[7],s[4])
+    for adsh, values in adshtovalues.items():
+        for tag in values.keys():
+            values[tag] = values[tag][0]
+        with open(f'{foldername}/data.csv', 'w', newline = '') as file:
+            writer = csv.Dictwriter(file)
+            writer.writeheader()
+            for x,y in adshtovalues.items():
+                # row does not contain adsh!!!
+                writer.writerow(y)
+
+
+# adshs = getadsh('test')
+# tags = getusedtags('test', adsh = adshs)
+# adshtovalues = {}
+# for adsh in adshs:
+#     adshtovalues[adsh] = {}
+# with open('test/num.txt', 'r') as file:
+#         for row in file:
+#             s = row.split('\t')
+#             if s[0] in adsh and s[1] in tags:
+#                 if s[1] in adshtovalues[s[0]] and adshtovalues[s[0]][s[1]][1] < s[4] and s[5] == 1:
+#                     adshtovalues[s[0]][s[1]] = (s[7],s[4])
+# for adsh, values in adshtovalues.items():
+#     for tag in values.keys():
+#         values[tag] = values[tag][0]
+        
+# 'NetIncomeLoss'
+# with open('test/data.csv', 'w', newline = '') as file:
+#         writer = csv.DictWriter(file, fieldnames = tags)
+#         writer.writeheader()
+#         print(adsh)
+#         for x,y in adshtovalues.items():
+#             print(y)
+#             writer.writerow(y)
+
+
+
+
 
 def download100prices():   
     tickers = gettickers()
@@ -84,6 +149,17 @@ def download100prices():
         data = yf.multi.download(ticker, start = '2009-01-01', end = date.today(), interval = '1d', keepna = True)
         data.to_csv(f'prices/{ticker}.csv')
 
-df = pd.read_csv('prices/AAPL.csv', index_col = 0, header = 0, dtype={'Adj Close':float})
-df.plot(y='Adj Close')
-plt.show()
+def plotweeklyvariance(ticker):
+    df = pd.read_csv(f'prices/{ticker}.csv', index_col = 0, header = 0, dtype={'Adj Close':float})
+    n = df.shape[0]-1
+    arr = [0]*(n//5)
+    for x in range(1,n-5,5):
+        low = min([float(df.iloc[[i]]['Low']) for i in range(x, x+5)])
+        high = max([float(df.iloc[[i]]['High']) for i in range(x, x+5)])
+        diff = (high-low)/low
+        if diff > 0.25:
+            print(df.iloc[[x]])
+        arr[x//5] = diff
+    plt.hist(arr, bins=50)
+    plt.show()
+
