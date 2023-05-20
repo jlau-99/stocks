@@ -162,36 +162,21 @@ def create_tickersfinal2():
 
 table_60percent()
 
-# create_tickersfinal2()
-tickers = []
-with open('tickersfinal2.txt', 'r') as file:
-    for row in file:
-        tickers.append(row.strip())
-print(len(tickers), 'lentickers')
+# # create_tickersfinal2()
+# tickers = []
+# with open('tickersfinal2.txt', 'r') as file:
+#     for row in file:
+#         tickers.append(row.strip())
+# print(len(tickers), 'lentickers')
 
-data = []
-c = 0
-with open('lstm_results.txt', 'r') as file:
-    for s in file:
-        arr = s.strip().split('\t')
-        if arr[0] in tickers:
-            if float(arr[1]) > 0.3:
-                c += 1
-            else:
-                data.append(float(arr[1]))
+# data = []
+# c = 0
+# with open('lstm_results.txt', 'r') as file:
+#     for s in file:
+#         arr = s.strip().split('\t')
+#         if arr[0] in tickers:
+#             if float(arr[1]) > 0.3:
+#                 c += 1
+#             else:
+#                 data.append(float(arr[1]))
 
-#binning
-B = 10
-minv = min(data)
-maxv = 0.3
-print(minv, 'min', maxv, 'max')
-bincounts = []
-for i in range(B+1):
-    bincounts.append(0)
-for d in data:
-    b = int((d - minv) / (maxv - minv) * B)
-    bincounts[b] += 1
-# plot histogram
-bincounts.append(c)
-plt.plot([0.03 * i for i in range(12)], bincounts,'o')
-plt.show()
