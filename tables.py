@@ -1,9 +1,5 @@
 from tqdm import tqdm
-import yfinance as yf
-from datetime import date
-import os
 from collections import defaultdict
-from matplotlib import pyplot as plt
 
 # number of stocks a company issues
 def table_numstocks():
@@ -160,23 +156,6 @@ def create_tickersfinal2():
         for ticker in tickerswithprice:
             file.write(ticker + '\n')
 
+table_numstocks()
 table_60percent()
-
-# # create_tickersfinal2()
-# tickers = []
-# with open('tickersfinal2.txt', 'r') as file:
-#     for row in file:
-#         tickers.append(row.strip())
-# print(len(tickers), 'lentickers')
-
-# data = []
-# c = 0
-# with open('lstm_results.txt', 'r') as file:
-#     for s in file:
-#         arr = s.strip().split('\t')
-#         if arr[0] in tickers:
-#             if float(arr[1]) > 0.3:
-#                 c += 1
-#             else:
-#                 data.append(float(arr[1]))
-
+create_tickersfinal2()
