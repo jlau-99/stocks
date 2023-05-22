@@ -140,3 +140,21 @@ def autoregression(ticker, detail=False):
     return (mse, var)
 
 # autoregression('AAPL', detail=True)
+if __name__ == '__main__':
+    tickers = []
+    with open('tickersfinal2.txt', 'r') as file:
+        for row in file:
+            tickers.append(row.split()[0])
+    count = 0
+    
+    for ticker in tickers:
+        count += 1
+        print('At ticker ', count, ', ', ticker)
+        try:
+            m, v = autoregression(ticker)
+            with open('auto_results2.txt', 'a') as file:
+                row = ticker + '\t' + str(m) + '\n'
+                file.write(row)
+        except:
+            with open('auto_failed2.txt', 'a') as file:
+                file.write(ticker + '\n')
