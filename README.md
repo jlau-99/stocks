@@ -27,10 +27,17 @@ The data is downloaded from yahoo using the `yfinance` library. The data is down
 
 ## Running the scripts
 The scripts should be run in the following order:
+
 `download.py`
+
 `variables.py`
+
 `tables.py`
+
 `regression.py`
+
 `lstm.py`
+
 `lstm_with_sheet.py`
+
 `analysis.py`
