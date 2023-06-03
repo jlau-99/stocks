@@ -24,3 +24,13 @@ The `download.py` script downloads all financial statements from 2009 to 2021. T
 
 ### Stock data
 The data is downloaded from yahoo using the `yfinance` library. The data is downloaded as a `DataFrame`, then converted to a csv and stored in a `prices` file.
+
+## Running the scripts
+The scripts should be run in the following order:
+`download.py`
+`variables.py`
+`tables.py`
+`regression.py`
+`lstm.py`
+`lstm_with_sheet.py`
+`analysis.py`
